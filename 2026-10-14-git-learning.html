@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="zh-CN">
+<style>
+  @font-face {
+    font-family: "BlogBody";
+    src: url("fonts/body.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "BlogCode";
+    src: url("fonts/code.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  body {
+    font-family: "BlogBody", serif;
+  }
+
+  pre, code {
+    font-family: "BlogCode", monospace;
+  }
+</style>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Git 的学习</title>
+  <link rel="stylesheet" href="assets/katex/katex.min.css">
+  <link rel="stylesheet" href="assets/highlight.css">
+</head>
+<body>
+  <nav aria-label="主导航", style="font-size: 1.3em;">
+    <a href="index.html">主页</a>
+    <a href="articles.html">文章列表</a>
+    <a href="links.html">友链</a>
+  </nav>
+  <main>
+<h1>Git 的学习</h1>
+<p>初中就开始听说了 <code>git</code> 了, 当时只学会了 <code>git add .</code> 和 <code>git commit -m &quot;...&quot;</code>, 直到最近终于忍不住了...感觉大学的同学知道的都比我多<br>
+懒惰不前、安于现状不是一个有生命力的做法! 所以需要进一步学习 <code>git</code></p>
+<p>使用 Github 的话, 从 <a href="https://github.com/settings/personal-access-tokens">https://github.com/settings/personal-access-tokens</a> 创建 token, 在 <code>git push</code> 的时候需要使用</p>
+<p>目前的学习方法</p>
+<ul>
+<li>Pro Git 第二章和第三章</li>
+<li>Learn Git Branching 小游戏</li>
+<li>在 Github 手动创建 PR, etc</li>
+<li>ask AI</li>
+</ul>
+<h2>约定式提交</h2>
+<pre><code class="hljs">类型(范围): 简单描述
+</code></pre>
+<p>其中范围可选, 不兼容的时候在冒号前使用 <code>!</code> 标记, 类型如下</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>用途</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>feat</code></td>
+<td>新功能</td>
+<td><code>feat: 添加暗色模式</code></td>
+</tr>
+<tr>
+<td><code>fix</code></td>
+<td>修复 bug</td>
+<td><code>fix: 修复文章目录跳转错误</code></td>
+</tr>
+<tr>
+<td><code>docs</code></td>
+<td>文档修改</td>
+<td><code>docs: 补充本地运行说明</code></td>
+</tr>
+<tr>
+<td><code>style</code></td>
+<td>代码格式调整，不影响含义</td>
+<td><code>style: 统一缩进和引号</code></td>
+</tr>
+<tr>
+<td><code>refactor</code></td>
+<td>重构，既不新增功能也不修复 bug</td>
+<td><code>refactor: 提取文章加载逻辑</code></td>
+</tr>
+<tr>
+<td><code>perf</code></td>
+<td>性能优化</td>
+<td><code>perf: 缓存文章索引</code></td>
+</tr>
+<tr>
+<td><code>test</code></td>
+<td>添加或修改测试</td>
+<td><code>test: 添加搜索功能测试</code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td>构建系统、依赖调整</td>
+<td><code>build: 升级 vite</code></td>
+</tr>
+<tr>
+<td><code>ci</code></td>
+<td>CI 工作流调整</td>
+<td><code>ci: 添加自动部署流程</code></td>
+</tr>
+<tr>
+<td><code>chore</code></td>
+<td>其他维护工作</td>
+<td><code>chore: 更新 gitignore</code></td>
+</tr>
+</tbody>
+</table>
+<h2>分支与合并</h2>
+<h3>分支</h3>
+<pre><code class="hljs">git switch -c BRANCH_NAME   # 创建并切换到分支
+git switch BRANCH_NAME      # 切换到分支
+git branch                  # 查看本地分支, * 表示当前分支
+</code></pre>
+<h3>合并</h3>
+<pre><code class="hljs">git merge X                 # 将 X 的内容合并到当前分支
+</code></pre>
+<h3>rebase</h3>
+<pre><code class="hljs">git rebase X
+</code></pre>
+<p>十分神奇, DAG 上更是如此, 建议多试试 <a href="https://learngitbranching.js.org/">https://learngitbranching.js.org/</a></p>
+<pre><code class="hljs">reset
+git commit
+git switch -c bf
+git commit
+git switch -c bf2
+git commit
+git switch bf
+git commit
+git commit
+git merge bf2
+git switch bf2
+git commit
+git switch main
+git commit
+git switch bf
+git commit
+git rebase main
+</code></pre>
+<h2>PR 的创建与合并</h2>
+<h3>自己的 Repo</h3>
+<ol>
+<li>从最新的 main 创建开发分支<pre><code class="hljs">git switch main
+git pull --ff-only origin main
+git switch -c dev
+</code></pre>
+</li>
+<li>修改提交推送<pre><code class="hljs"># change sth...
+git add . &amp;&amp; git commit -m &quot;chore: ...&quot;
+git push -u origin dev
+</code></pre>
+</li>
+<li>PR<pre><code class="hljs"># 在网页端发起 PR, base 选择希望合并入的分支 (通常是 main), compare 选择 dev
+# 因为是自己的分支, 可以自己检查合并 PR
+</code></pre>
+</li>
+<li>合并之后更新本地 main<pre><code class="hljs">git switch main
+git fetch origin main
+git merge --ff-only origin/main     # ff only 是快速前进合并, 当且仅当本地是远程的祖先, 如果不是需要 merge 或 rebase  
+                                    # merge 的话是手动处理冲突, 然后合并
+</code></pre>
+</li>
+<li>如果本次工作完成, 可以删掉<pre><code class="hljs">git branch -d dev
+git push origin --delete dev        # 远程删除 dev 分支
+git fetch --prune origin            # 清理本地残留的 origin/dev 远程跟踪引用
+</code></pre>
+</li>
+</ol>
+<h3>别人的 Repo</h3>
+<ol>
+<li>fork 他人的 repo, 下面以 <code>self/prj</code> 指代 fork 的项目, <code>oth/prj</code> 指代原项目<pre><code class="hljs">git clone https://github.com/self/prj.git
+cd prj
+git remote add upstream https://github.com/oth/prj.git
+git remote -v                       # 查看相关信息
+</code></pre>
+</li>
+<li>从原项目最新的 main 创建开发分支<pre><code class="hljs">git switch main
+git fetch upstream
+git merge --ff-only upstream/main
+
+git push origin main                # 同步自己的远程 fork
+git switch -c dev                   # 从最新的 main 创建开发分支
+</code></pre>
+</li>
+<li>修改提交推送到自己的 fork<pre><code class="hljs"># change sth...
+git add . &amp;&amp; git commit -m &quot;chore: &quot;
+git push -u origin dev
+</code></pre>
+</li>
+<li>发起 PR<pre><code class="hljs">base repo: 原作者仓库;  
+base: main;  
+head repo: 自己的 fork 仓库;  
+compare: dev;  
+</code></pre>
+</li>
+<li>PR 合并之后更新本地仓库<pre><code class="hljs">git switch main
+git fetch upstream                  # 同步已经更新到原仓库
+git merge --ff-only upstream/main   # 合并原仓库的 main
+git push origin main                # 将最新的 main 推送到自己 fork 上
+</code></pre>
+</li>
+<li>删除开发分支<pre><code class="hljs">git branch -d dev
+git push origin --delete dev
+git fetch --prune origin
+</code></pre>
+</li>
+</ol>
+<h3>一些其它概念</h3>
+<p><code>git pull</code> 实际上如下</p>
+<pre><code class="hljs">git fetch origin            # 下载 origin 的新提交
+git merge origin/main       # 将远程的 main 分支合并到本地的 main 分支
+</code></pre>
+<p>所以 Git 工作流的主体结构大概是这样的</p>
+<ul>
+<li>本地通过 <code>git remote add NAME REMOTE_REPO_URL</code> 来连接远程仓库, 每个 <code>NAME</code> 有两个地址, <code>fetch</code> 地址和 <code>push</code> 地址, 通常相同;<br>
+<code>fetch</code> 和 <code>push</code> 操作指名 <code>NAME</code> 的时候, 就分别使用同名的地址; 可以通过 <code>git remote -v</code> 来查看远程仓库信息</li>
+<li><code>fetch</code> 只是下载, <code>pull</code> 整合了下载和合并, <code>fetch</code> 和 <code>push</code> 的常见用法如下<pre><code class="hljs">git fetch NAME            # 获取远程的所有分支更新
+git fetch NAME BRH        # 获取远程的具体某条分支更新
+git branch -r             # 查看获取的远程分支信息
+git push NAME BRH         # 将本地 BRH 分支推送到远程同名分支
+git push NAME BRH:RMB     # 将本地 BRH 分支推送到远程 RMB 分支
+git push -u NAME BRH      # 推送到远程分支并设置本地的跟踪关系
+git push --dry-run NAME BRH   # 预览推送操作
+</code></pre>
+</li>
+</ul>
+<p>track 是设置上游跟踪关系, 即本地的 xx 分支和远程的 yy 分支关联, 首次推送也会设置关系<br>
+例如</p>
+<pre><code class="hljs">git switch -c dev --track origin/dev    # 在本地创建 dev 分支并跟踪远程的 dev 分支
+git push -u origin dev                  # 将本地的 dev 分支上传到远程的 dev 分支, 并使本地的 dev 分支跟踪远程的 dev 分支
+git branch --set-upstream-to=origin/dev dev # 两个分支已经存在, 仅设置关系
+</code></pre>
+
+  </main>
+</body>
+</html>
