@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<style>
+  @font-face {
+    font-family: "BlogBody";
+    src: url("fonts/body.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "BlogCode";
+    src: url("fonts/code.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  body {
+    font-family: "BlogBody", serif;
+  }
+
+  pre, code {
+    font-family: "BlogCode", monospace;
+  }
+
+  main img {
+    max-width: 100%;
+    max-height: 50vh;
+    width: auto;
+    height: auto;
+  }
+</style>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dae 配置</title>
+  <link rel="stylesheet" href="assets/katex/katex.min.css">
+  <link rel="stylesheet" href="assets/highlight.css">
+</head>
+<body>
+  <nav aria-label="主导航", style="font-size: 1.3em;">
+    <a href="index.html">主页</a>
+    <a href="articles.html">文章列表</a>
+    <a href="links.html">友链</a>
+  </nav>
+  <main>
+<h1>dae 配置</h1>
+<p>记录一下个人的 dae 配置, 大部分访问采取直连, 仅代理某些无法正常访问的 site 和地址</p>
+<pre><code class="hljs">dae version 2.1.1
+go runtime go1.27.1-X:heapminimum512kib,newinliner,nodwarf5,simd linux/amd64
+Copyright (c) 2022-2026 @daeuniverse
+License GNU AGPLv3 &lt;https://github.com/daeuniverse/dae/blob/main/LICENSE&gt;
+</code></pre>
+<p>从 <a href="https://github.com/Loyalsoldier/geoip.git">https://github.com/Loyalsoldier/geoip.git</a> 处下载增强的 <code>geoip.dat</code></p>
+<pre><code class="hljs"><span class="hljs-built_in">sudo</span> curl -fL \
+    <span class="hljs-string">&#x27;https://raw.githubusercontent.com/Loyalsoldier/geoip/release/geoip.dat&#x27;</span> \
+    -o /usr/share/dae/geoip-loyalsoldier.dat
+</code></pre>
+<p>配置文件 <code>config.dae</code></p>
+<pre><code class="hljs">global {
+	wan_interface: auto
+	auto_config_kernel_parameter: true
+	log_level: debug
+	dial_mode: domain
+}
+
+subscription {
+	my_sub: &#39;https-file://...&#39;
+}
+
+group {
+	proxy {
+		filter: subtag(my_sub)
+		policy: min_moving_avg
+	}
+}
+
+dns {
+	upstream {
+		local: &#39;tcp+udp://223.5.5.5:53&#39;
+		remote: &#39;tcp+udp://8.8.8.8:53&#39;
+	}
+	routing {
+		request {
+			qname(
+				geosite:google,
+				geosite:github,
+				geosite:openai,
+				geosite:telegram,
+				suffix:chatgpt.com
+			) -&gt; remote
+			fallback: local
+		}
+	}
+}
+
+routing {
+	pname(NetworkManager) -&gt; direct
+	dip(224.0.0.0/3, &#39;ff00::/8&#39;) -&gt; direct
+	dip(127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, &#39;::1/128&#39;, &#39;fc00::/7&#39;, &#39;fe80::/10&#39;) -&gt; direct
+	dip(geoip:private) -&gt; direct
+
+	dip(8.8.8.8) &amp;&amp; dport(53) -&gt; proxy
+
+	domain(
+		geosite:google,
+		geosite:github,
+		geosite:openai,
+		geosite:telegram,
+		suffix:chatgpt.com
+	) -&gt; proxy
+	dip(ext:&#39;geoip-loyalsoldier.dat:telegram&#39;) -&gt; proxy
+
+	fallback: direct
+}
+</code></pre>
+<p>其中从域名库中匹配域名可以这样写 <code>geosite:google</code><br>
+从默认 ip 库中匹配私网和保留地址 <code>geoip:private</code></p>
+<p>开机启动</p>
+<pre><code class="hljs"><span class="hljs-built_in">sudo</span> systemctl <span class="hljs-built_in">enable</span> --now dae
+</code></pre>
+<p>使用以下方式手动更新订阅</p>
+<pre><code class="hljs"><span class="hljs-built_in">sudo</span> dae reload
+</code></pre>
+
+  </main>
+</body>
+</html>
