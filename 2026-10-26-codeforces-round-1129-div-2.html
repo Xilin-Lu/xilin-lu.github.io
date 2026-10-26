@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-CN">
+<style>
+  @font-face {
+    font-family: "BlogBody";
+    src: url("fonts/body.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "BlogCode";
+    src: url("fonts/code.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  body {
+    font-family: "BlogBody", serif;
+  }
+
+  pre, code {
+    font-family: "BlogCode", monospace;
+  }
+
+  main img {
+    max-width: 100%;
+    max-height: 50vh;
+    width: auto;
+    height: auto;
+  }
+</style>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Codeforces Round 1129 (Div. 2) 个人题解</title>
+  <link rel="stylesheet" href="assets/katex/katex.min.css">
+  <link rel="stylesheet" href="assets/highlight.css">
+</head>
+<body>
+  <nav aria-label="主导航", style="font-size: 1.3em;">
+    <a href="index.html">主页</a>
+    <a href="articles.html">文章列表</a>
+    <a href="links.html">友链</a>
+  </nav>
+  <main>
+<h1>Codeforces Round 1129 (Div. 2) 个人题解</h1>
+<p>链接 <a href="https://codeforces.com/contest/2277">https://codeforces.com/contest/2277</a></p>
+<h2>A</h2>
+<p>取每个集合的最大值的 <code>mex</code>, 从小到大枚举 <code>mex</code> 的答案, 构造最大值为 <code>mex</code> 的集合即可<br>
+构造需要 <code>mex</code> 作为最大值, 以及 <code>k - 1</code> 个 <code>&lt;= mex</code> 的值填充集合</p>
+<pre><code class="hljs"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">solve</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-type">int</span> n, k;
+    std::cin &gt;&gt; n &gt;&gt; k;
+
+    std::map&lt;<span class="hljs-type">int</span>, <span class="hljs-type">int</span>&gt; cnt;
+    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> _ = <span class="hljs-number">0</span>; _ &lt; n; ++_) {
+        <span class="hljs-type">int</span> x;
+        std::cin &gt;&gt; x;
+        ++cnt[x];
+    }
+
+    <span class="hljs-type">int</span> mex = <span class="hljs-number">0</span>, tot = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">for</span> (mex = <span class="hljs-number">0</span>; mex &lt;= n; ++mex) {
+        <span class="hljs-keyword">if</span> (cnt[mex] == <span class="hljs-number">0</span>) <span class="hljs-keyword">break</span>;
+        --cnt[mex], tot += cnt[mex];
+        <span class="hljs-keyword">if</span> (tot &lt; k - <span class="hljs-number">1</span>) <span class="hljs-keyword">break</span>;
+        tot -= k - <span class="hljs-number">1</span>;
+    }
+
+    std::cout &lt;&lt; mex &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;
+}
+</code></pre>
+<h2>B</h2>
+<p>假设我们已经选出来一个 subseq, 则是否能达到目标状态, 最优的做法是指定最小值为变成 0 的选项, 然后把它变成 0, 再把其他删掉<br>
+然后显然序列越长, 最小值可以减少的值越多, 越能靠近 0, 所以直接选择原序列就好, 这样最小值最多能减少 <code>len - 1</code> 次<br>
+在减少 <code>len - 1</code> 之后还不能变成 0, 则下一次操作必然变为空序列, 达不到目标状况</p>
+<pre><code class="hljs"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">solve</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-type">int</span> n;
+    std::cin &gt;&gt; n;
+
+    <span class="hljs-type">int</span> minv = <span class="hljs-number">-1</span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> _ = <span class="hljs-number">0</span>; _ &lt; n; ++_) {
+        <span class="hljs-type">int</span> x;
+        std::cin &gt;&gt; x;
+        <span class="hljs-keyword">if</span> (minv == <span class="hljs-number">-1</span>) minv = x;
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (x &lt; minv) minv = x;
+    }
+
+    <span class="hljs-keyword">if</span> (minv &lt;= n - <span class="hljs-number">1</span>) std::cout &lt;&lt; n &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;
+    <span class="hljs-keyword">else</span> std::cout &lt;&lt; <span class="hljs-string">&quot;0\n&quot;</span>;
+}
+</code></pre>
+<h2>C</h2>
+<p>在以 <code>1</code> 为根的树上, <code>lca(n, u) == 1</code> 的点 <code>u</code> 无论怎么与 <code>1</code> 连接, 都不会改变 <code>dis(1, n)</code><br>
+每一次只会连接 <code>v</code> 和 <code>1</code>, 并不会改变 <code>dis(n, v)</code><br>
+因此对于被连边的且 <code>lca(n, u) != 1</code> 的点 <code>u</code>, 取 <code>dis(n, u)</code> 的最大值 <code>+ 1</code> 即可</p>
+<pre><code class="hljs"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">solve</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-type">int</span> n, m;
+    std::cin &gt;&gt; n &gt;&gt; m;
+
+    std::vector&lt;std::vector&lt;<span class="hljs-type">int</span>&gt;&gt; <span class="hljs-built_in">t</span>(n + <span class="hljs-number">1</span>);
+    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> _ = <span class="hljs-number">0</span>; _ &lt; n - <span class="hljs-number">1</span>; ++_) {
+        <span class="hljs-type">int</span> x, y;
+        std::cin &gt;&gt; x &gt;&gt; y;
+        t[x].<span class="hljs-built_in">push_back</span>(y);
+        t[y].<span class="hljs-built_in">push_back</span>(x);
+    }
+
+    <span class="hljs-function">std::vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">dis</span><span class="hljs-params">(n + <span class="hljs-number">1</span>, <span class="hljs-number">0</span>)</span></span>;
+    <span class="hljs-function">std::vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">f</span><span class="hljs-params">(n + <span class="hljs-number">1</span>)</span></span>;
+    <span class="hljs-keyword">auto</span> dfs = [&amp;](<span class="hljs-keyword">auto</span>&amp;&amp; dfs, <span class="hljs-type">int</span> cur, <span class="hljs-type">int</span> fa, <span class="hljs-type">int</span> d) -&gt; <span class="hljs-type">void</span> {
+        dis[cur] = d, f[cur] = fa;
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> son : t[cur]) {
+            <span class="hljs-keyword">if</span> (son == fa) <span class="hljs-keyword">continue</span>;
+            <span class="hljs-built_in">dfs</span>(dfs, son, cur, d + <span class="hljs-number">1</span>);
+        }
+    };
+    <span class="hljs-built_in">dfs</span>(dfs, n, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>);
+
+    <span class="hljs-function">std::vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">lcn</span><span class="hljs-params">(n + <span class="hljs-number">1</span>, <span class="hljs-number">-1</span>)</span></span>;
+    <span class="hljs-keyword">auto</span> dfs2 = [&amp;](<span class="hljs-keyword">auto</span>&amp;&amp; dfs2, <span class="hljs-type">int</span> cur, <span class="hljs-type">int</span> fa, <span class="hljs-type">int</span> beg) -&gt; <span class="hljs-type">void</span> {
+        <span class="hljs-keyword">if</span> (beg == <span class="hljs-number">-1</span>) {
+            lcn[cur] = cur;
+            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> son : t[cur]) {
+                <span class="hljs-keyword">if</span> (son == fa || son == f[cur]) <span class="hljs-keyword">continue</span>;
+                <span class="hljs-built_in">dfs2</span>(dfs2, son, cur, cur);
+            } 
+            <span class="hljs-keyword">if</span> (f[cur] != fa) <span class="hljs-built_in">dfs2</span>(dfs2, f[cur], cur, <span class="hljs-number">-1</span>);
+        } <span class="hljs-keyword">else</span> {
+            lcn[cur] = beg;
+            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> son : t[cur]) {
+                <span class="hljs-keyword">if</span> (son == fa) <span class="hljs-keyword">continue</span>;
+                <span class="hljs-built_in">dfs2</span>(dfs2, son, cur, beg);
+            }
+        }
+    };
+    <span class="hljs-built_in">dfs2</span>(dfs2, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">-1</span>);
+
+    <span class="hljs-type">int</span> ans = dis[<span class="hljs-number">1</span>];
+    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> _ = <span class="hljs-number">0</span>; _ &lt; m; ++_) {
+        <span class="hljs-type">int</span> x;
+        std::cin &gt;&gt; x;
+        <span class="hljs-keyword">if</span> (lcn[x] == <span class="hljs-number">1</span>) <span class="hljs-keyword">continue</span>;
+        ans = std::<span class="hljs-built_in">max</span>(ans, dis[x] + <span class="hljs-number">1</span>);
+    }
+
+    std::cout &lt;&lt; ans &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;
+}
+</code></pre>
+<h2>D1</h2>
+<p>对于每一个点的 <code>f(n)</code>, 是有比较快速的求法的, 本人思索一番后, 决定使用以下递归求法解决</p>
+<ul>
+<li>其中一个答案必然是取刚好比 <code>n</code> 大的 <code>mask</code>, 然后答案是 <code>k + (mask - n)</code></li>
+<li>否则求 <code>n</code> 减去刚好比它小的最大 <code>mask</code> 的函数值, 再加上形成 <code>mask</code> 的代价和断掉操作 1 的代价</li>
+</ul>
+<p>刚好对了</p>
+<pre><code class="hljs"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">solve</span><span class="hljs-params">()</span> </span>{
+    i64 l, r;
+    std::cin &gt;&gt; l &gt;&gt; r;
+
+    <span class="hljs-keyword">auto</span> f = [](<span class="hljs-keyword">auto</span>&amp;&amp; f, i64 x) -&gt; i64 {
+        <span class="hljs-type">int</span> cnt = <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">for</span> (i64 xx = x; xx; xx &gt;&gt;= <span class="hljs-number">1</span>, ++cnt) ;
+        i64 ans = (<span class="hljs-number">1LL</span> &lt;&lt; cnt) - x + cnt - <span class="hljs-number">1</span>;
+        <span class="hljs-keyword">if</span> (cnt &gt;= <span class="hljs-number">3</span>) {
+            i64 rem = (<span class="hljs-number">1LL</span> &lt;&lt; (cnt - <span class="hljs-number">1</span>)) - <span class="hljs-number">2</span>;
+            ans = std::<span class="hljs-built_in">min</span>(ans, cnt + <span class="hljs-built_in">f</span>(f, x - rem));
+        }
+        <span class="hljs-keyword">return</span> ans;
+    };
+
+    i64 ans = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">for</span> (i64 i = l; i &lt;= r; ++i) {
+        ans = (ans + <span class="hljs-built_in">f</span>(f, i)) % MOD;
+    }
+    std::cout &lt;&lt; ans &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;
+}
+</code></pre>
+<p>感觉实现很烂, 应该能用循环写的</p>
+<h2>D2</h2>
+<p>肯定对于某一段 <code>[u, v]</code>, 有以下特点</p>
+<ul>
+<li>分段使用 <code>mask</code> 的策略相同</li>
+<li>最后一段使用刚好大于它的 <code>mask</code> 做减法</li>
+</ul>
+<p>然后可以快速跳段<br>
+思考中, 还没写出来, 等我梳理完 D1 的做法再说 ()</p>
+<h2>E</h2>
+<p>没做</p>
+<h2>F</h2>
+<p>对于每一个点 <code>u</code>, 假设它对根 <code>r</code> 造成了贡献, 则贡献以以下方法计算</p>
+<blockquote>
+<p>令 <code>u</code> 为根, <code>r</code> 在 <code>u</code> 的邻居 <code>v</code> 的子树上, 贡献为 <code>all - subtree_sum(v)</code></p>
+</blockquote>
+<p>那 <code>u</code> 什么时候对 <code>r</code> 会造成贡献呢? 在 <code>u</code> 到 <code>r</code> 的路径上, 没有已经被操作的节点<br>
+如果我们把操作后的节点在树上删去, 则上述条件变为 <code>u</code> 和 <code>r</code> 在一个连通块上</p>
+<p>我们反向遍历 <code>P</code>, 撤回删除的节点 <code>u</code> (将 <code>u</code> 旁边没有被删除的点连起来), 则可以较为方便地使用<strong>并查集</strong>维护连通块<br>
+每次撤销 (将点加入并查集), 都需要对即将联通的集合 (每一个可能的根节点) 的答案加上 <code>all - subtree_sum(v)</code>, 可以使用 <strong>带权</strong>并查集 较为方便地维护集合加和单点查的性质</p>
+<p><code>subtree_sum(v)</code> 可以使用任意根遍历的子树和快速求出</p>
+<pre><code class="hljs"><span class="hljs-keyword">using</span> i64 = <span class="hljs-type">long</span> <span class="hljs-type">long</span>;
+<span class="hljs-keyword">constexpr</span> i64 MOD = <span class="hljs-number">998&#x27;244&#x27;353</span>;
+
+<span class="hljs-keyword">struct</span> <span class="hljs-title class_">DSUW</span> {
+    <span class="hljs-type">int</span> n;
+    std::vector&lt;<span class="hljs-type">int</span>&gt; fa, sz;
+    std::vector&lt;i64&gt; tag, d;
+
+    <span class="hljs-built_in">DSUW</span>(<span class="hljs-type">int</span> n)
+    : <span class="hljs-built_in">n</span>(n), <span class="hljs-built_in">fa</span>(n), <span class="hljs-built_in">sz</span>(n, <span class="hljs-number">1</span>), <span class="hljs-built_in">tag</span>(n, <span class="hljs-number">0</span>), <span class="hljs-built_in">d</span>(n, <span class="hljs-number">0</span>) {
+        std::<span class="hljs-built_in">iota</span>(fa.<span class="hljs-built_in">begin</span>(), fa.<span class="hljs-built_in">end</span>(), <span class="hljs-number">0</span>);
+    }
+
+    <span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">find</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> </span>{
+        <span class="hljs-keyword">if</span> (x == fa[x]) <span class="hljs-keyword">return</span> x;
+        <span class="hljs-type">int</span> f = fa[x];
+        fa[x] = <span class="hljs-built_in">find</span>(f);
+        d[x] = (d[x] + d[f]) % MOD;
+        <span class="hljs-keyword">return</span> fa[x];
+    }
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">merge</span><span class="hljs-params">(<span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y)</span> </span>{
+        <span class="hljs-type">int</span> rx = <span class="hljs-built_in">find</span>(x), ry = <span class="hljs-built_in">find</span>(y);
+        <span class="hljs-keyword">if</span> (rx == ry) <span class="hljs-keyword">return</span>;
+        <span class="hljs-keyword">if</span> (sz[rx] &lt; sz[ry]) {
+            d[rx] = (tag[rx] - tag[ry] + MOD) % MOD;
+            fa[rx] = ry, sz[ry] += sz[rx];
+        } <span class="hljs-keyword">else</span> {
+            d[ry] = (tag[ry] - tag[rx] + MOD) % MOD;
+            fa[ry] = rx, sz[rx] += sz[ry];
+        }
+    }
+    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">add</span><span class="hljs-params">(<span class="hljs-type">int</span> x, i64 v)</span> </span>{
+        <span class="hljs-type">int</span> rx = <span class="hljs-built_in">find</span>(x);
+        tag[rx] = (tag[rx] + v % MOD + MOD) % MOD;
+    }
+    <span class="hljs-function">i64 <span class="hljs-title">get</span><span class="hljs-params">(<span class="hljs-type">int</span> x)</span> </span>{
+        <span class="hljs-type">int</span> rx = <span class="hljs-built_in">find</span>(x);
+        <span class="hljs-keyword">return</span> (d[x] + tag[rx]) % MOD;
+    }
+};
+
+<span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">solve</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-type">int</span> n;
+    std::cin &gt;&gt; n;
+
+    std::vector&lt;std::vector&lt;<span class="hljs-type">int</span>&gt;&gt; <span class="hljs-built_in">t</span>(n + <span class="hljs-number">1</span>);
+    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> _ = <span class="hljs-number">0</span>; _ &lt; n - <span class="hljs-number">1</span>; ++_) {
+        <span class="hljs-type">int</span> u, v;
+        std::cin &gt;&gt; u &gt;&gt; v;
+        t[u].<span class="hljs-built_in">push_back</span>(v);
+        t[v].<span class="hljs-built_in">push_back</span>(u);
+    }
+
+    <span class="hljs-function">std::vector&lt;i64&gt; <span class="hljs-title">a</span><span class="hljs-params">(n + <span class="hljs-number">1</span>)</span></span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; ++i) std::cin &gt;&gt; a[i];
+
+    <span class="hljs-function">std::vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">p</span><span class="hljs-params">(n)</span></span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; x : p) std::cin &gt;&gt; x;
+    std::<span class="hljs-built_in">reverse</span>(p.<span class="hljs-built_in">begin</span>(), p.<span class="hljs-built_in">end</span>());
+
+    i64 all = <span class="hljs-number">0</span>;
+    <span class="hljs-function">std::vector&lt;<span class="hljs-type">int</span>&gt; <span class="hljs-title">df</span><span class="hljs-params">(n + <span class="hljs-number">1</span>, <span class="hljs-number">-1</span>)</span></span>;
+    <span class="hljs-function">std::vector&lt;i64&gt; <span class="hljs-title">sum</span><span class="hljs-params">(n + <span class="hljs-number">1</span>, <span class="hljs-number">0</span>)</span></span>;
+    <span class="hljs-keyword">auto</span> dfs = [&amp;](<span class="hljs-keyword">auto</span>&amp;&amp; dfs, <span class="hljs-type">int</span> cur, <span class="hljs-type">int</span> fa) -&gt; <span class="hljs-type">void</span> {
+        all = (all + a[cur]) % MOD;
+        sum[cur] = a[cur];
+        df[cur] = fa;
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> son : t[cur]) {
+            <span class="hljs-keyword">if</span> (son == fa) <span class="hljs-keyword">continue</span>;
+            <span class="hljs-built_in">dfs</span>(dfs, son, cur);
+            sum[cur] = (sum[cur] + sum[son]) % MOD;
+        }
+    };
+    <span class="hljs-built_in">dfs</span>(dfs, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>);
+
+    <span class="hljs-keyword">auto</span> sbt = [&amp;](<span class="hljs-type">int</span> u, <span class="hljs-type">int</span> v) {
+        <span class="hljs-keyword">if</span> (df[v] == u) <span class="hljs-keyword">return</span> sum[v];
+        <span class="hljs-keyword">return</span> (all - sum[u] + MOD) % MOD;
+    };
+
+    <span class="hljs-function">DSUW <span class="hljs-title">dsu</span><span class="hljs-params">(n + <span class="hljs-number">1</span>)</span></span>;
+    <span class="hljs-function">std::vector&lt;<span class="hljs-type">bool</span>&gt; <span class="hljs-title">vis</span><span class="hljs-params">(n + <span class="hljs-number">1</span>, <span class="hljs-literal">false</span>)</span></span>;
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> u : p) {
+        vis[u] = <span class="hljs-literal">true</span>;
+        dsu.<span class="hljs-built_in">add</span>(u, all);
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> v : t[u]) 
+            <span class="hljs-keyword">if</span> (vis[v]) dsu.<span class="hljs-built_in">add</span>(v, (all - <span class="hljs-built_in">sbt</span>(u, v) + MOD) % MOD);
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> v : t[u])
+            <span class="hljs-keyword">if</span> (vis[v]) dsu.<span class="hljs-built_in">merge</span>(v, u);
+    }
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">1</span>; i &lt;= n; ++i)
+        std::cout &lt;&lt; dsu.<span class="hljs-built_in">get</span>(i) &lt;&lt; <span class="hljs-string">&#x27; &#x27;</span>;
+    std::cout &lt;&lt; <span class="hljs-string">&#x27;\n&#x27;</span>;
+}
+</code></pre>
+
+  </main>
+</body>
+</html>
